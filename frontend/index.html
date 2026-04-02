@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#ff4757">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Premium Menu | Order Now</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
+
+  <style> 
+  header {
+  max-width: 500px;          /* हेडर को भी सीमित करें */
+  margin: 0 auto;            /* सेंटर में लाने के लिए */
+  background: var(--dark);
+  color: white;
+  padding: 40px 20px;
+  text-align: center;
+  border-radius: 0 0 30px 30px;
+}
+
+.order-details-card {
+  background: white;
+  padding: 20px;
+  border-radius: 20px;
+  margin-bottom: 25px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.05); /* कार्ड जैसा लुक */
+}
+
+  .order-btn {
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 12px 25px;
+  border-radius: 15px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+    :root { --primary: #ff4757; --dark: #2f3542; --bg: #f1f2f6; --gray: #dfe4ea; }
+    body { font-family: 'Poppins', sans-serif; background-color: var(--bg); margin: 0; padding-bottom: 120px; color: var(--dark); }
+    
+    header { background: var(--dark); color: white; padding: 40px 20px; text-align: center; border-radius: 0 0 30px 30px; }
+    #restaurant-name { margin: 0; font-size: 1.8rem; }
+
+    .container {
+  max-width: 500px;
+  margin: -30px auto 20px; /* 'auto' इसे डेस्कटॉप पर बीच में रखता है */
+  padding: 0 20px;
+  box-sizing: border-box;
+}
+
+    
+    .order-details-card { 
+      background: white; padding: 20px; border-radius: 20px; margin-bottom: 25px;
+      display: flex; flex-direction: column; gap: 12px;
+    }
+
+    .input-row { 
+  display: flex; 
+  gap: 10px; 
+}
+
+.input-row input { 
+  flex: 1;      /* दोनों इनपुट बराबर जगह लेंगे */
+  width: 100%; 
+}
+
+input { 
+  border: 1px solid var(--gray); 
+  padding: 12px; 
+  border-radius: 12px; 
+  outline: none;
+}
+
+
+    #menu { display: grid; gap: 15px; }
+
+    .menu-item {
+      background: white; padding: 15px 20px; border-radius: 20px;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+
+    .controls { display: flex; align-items: center; gap: 10px; }
+.footer-bar {
+  position: fixed;
+  bottom: 0;
+  left: 50%;                 /* स्क्रीन के बीच से शुरू करें */
+  transform: translateX(-50%); /* बिल्कुल सेंटर में फिक्स करने के लिए */
+  width: 100%;
+  max-width: 500px;          /* यह आपके .container की चौड़ाई के बराबर होना चाहिए */
+  background: white;
+  padding: 15px 25px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-sizing: border-box;
+  box-shadow: 0 -5px 20px rgba(0,0,0,0.08);
+  border-radius: 20px 20px 0 0; /* प्रीमियम लुक के लिए ऊपरी कोने गोल */
+}
+
+
+  </style>
+</head>
+
+<body>
+
+<header>
+  <h1 id="restaurant-name">Loading...</h1>
+</header>
+
+<div class="container">
+
+  <div class="order-details-card">
+    <div class="input-row">
+      <input type="text" id="name" placeholder="Your Name *">
+      <input type="number" id="tableNo" placeholder="Table #">
+    </div>
+    <input type="text" id="address" placeholder="Delivery Address">
+  </div>
+
+  <div id="menu"></div>
+</div>
+
+<div class="footer-bar">
+  <div>
+    ₹<span id="total">0</span>
+  </div>
+  <button class="order-btn" onclick="orderNow()">Place Order</button>
+</div>
+
+<script>
+let restaurantData = {}; // ✅ added
+
+const API = "http://127.0.0.1:8000";
+
+const params = new URLSearchParams(window.location.search);
+const restaurantId = params.get("rid") || 1;
+
+let cart = [];
+let total = 0;
+
+async function loadData() {
+  try {
+    // ✅ Restaurant fetch
+    const res1 = await fetch(`${API}/restaurant/${restaurantId}`);
+    const restaurant = await res1.json();
+
+    restaurantData = restaurant; // ✅ IMPORTANT FIX
+
+    document.getElementById("restaurant-name").innerText =
+      restaurant?.name || "Restaurant";
+
+    // ✅ Menu load
+    const res = await fetch(`${API}/menu/${restaurantId}`);
+    const menuList = await res.json();
+
+    const grouped = {};
+
+    menuList.forEach(item => {
+      if (!grouped[item.category]) {
+        grouped[item.category] = [];
+      }
+      grouped[item.category].push(item);
+    });
+
+    const menuDiv = document.getElementById("menu");
+    menuDiv.innerHTML = "";
+
+    Object.keys(grouped).forEach(cat => {
+
+      const title = document.createElement("h3");
+      title.innerText = cat;
+      title.style.marginTop = "20px";
+      menuDiv.appendChild(title);
+
+      grouped[cat].forEach(item => {
+        const div = document.createElement("div");
+        div.className = "menu-item";
+
+        div.innerHTML = `
+          <div style="display:flex; gap:10px; align-items:center;">
+            <img src="${item.image}" width="60" height="60" style="border-radius:10px; object-fit:cover;">
+            <div>
+              <b>${item.name}</b><br>
+              ₹${item.price}
+            </div>
+          </div>
+
+          <div class="controls">
+            <button onclick="removeFromCart('${item.name}', ${item.price})">-</button>
+            <span id="qty-${item.name.replace(/\s+/g, '')}">0</span>
+            <button onclick="addToCart('${item.name}', ${item.price})">+</button>
+          </div>
+        `;
+
+        menuDiv.appendChild(div);
+      });
+
+    });
+
+  } catch (err) {
+    console.error(err);
+    alert("Backend connection failed");
+  }
+}
+
+function addToCart(name, price) {
+  cart.push({ name, price });
+  updateUI(name);
+}
+
+function removeFromCart(name) {
+  const index = cart.findIndex(i => i.name === name);
+  if (index > -1) {
+    cart.splice(index, 1);
+    updateUI(name);
+  }
+}
+
+function updateUI(name) {
+  total = cart.reduce((sum, item) => sum + item.price, 0);
+  document.getElementById("total").innerText = total;
+
+  const qty = cart.filter(i => i.name === name).length;
+  const el = document.getElementById(`qty-${name.replace(/\s+/g, '')}`);
+  if (el) el.innerText = qty;
+}
+
+async function orderNow() {
+  const name = document.getElementById("name").value;
+  const address = document.getElementById("address").value;
+  const tableNo = document.getElementById("tableNo").value;
+
+  if (!name) {
+    alert("Enter name");
+    return;
+  }
+
+  if (cart.length === 0) {
+    alert("Add items first");
+    return;
+  }
+
+  // ✅ FIXED WhatsApp (dynamic + full details)
+  const phone = restaurantData.whatsapp;
+
+  let itemsText = cart.map(i => `• ${i.name} - ₹${i.price}`).join("\n");
+
+  let msg =
+`🧾 New Order\n\n` +
+`👤 Name: ${name}\n` +
+`📍 Address: ${address || "Dine-in"}\n` +
+`🍽️ Table: ${tableNo || "N/A"}\n\n` +
+`🛒 Items:\n${itemsText}\n\n` +
+`💰 Total: ₹${total}`;
+
+  window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`);
+
+  // DB SAVE
+  await fetch(`${API}/order`, {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({
+      name,
+      address,
+      table: tableNo,
+      items: cart,
+      total,
+      restaurant_id: restaurantId
+    })
+  });
+
+  alert("Order placed ✅");
+  location.reload();
+}
+
+loadData();
+</script>
+
+</body>
+</html>

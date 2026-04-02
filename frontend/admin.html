@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Admin Panel</title>
+  <style>
+    body { font-family: Arial; padding: 20px; }
+    input { padding: 8px; margin: 5px; }
+    button { padding: 8px 12px; cursor: pointer; }
+    #panel { display: none; }
+  </style>
+</head>
+
+<body>
+
+<h2>🔐 Login</h2>
+<input id="user" placeholder="Username">
+<input id="pass" placeholder="Password" type="password">
+<button onclick="login()">Login</button>
+
+<hr>
+
+<div id="panel">
+
+  <h2>➕ Add Menu</h2>
+  <input id="name" placeholder="Item name">
+  <input id="category" placeholder="Category (Gravy, Snacks)">
+<input id="image" placeholder="Image URL">
+  <input id="price" placeholder="Price" type="number">
+  <button onclick="addMenu()">Add</button>
+
+  <h2>📋 Menu List</h2>
+  <div id="menu"></div>
+
+</div>
+
+<script>
+const API = "http://127.0.0.1:8000";
+let restaurantId = null;
+
+// 🔐 LOGIN
+async function login() {
+  const username = document.getElementById("user").value;
+  const password = document.getElementById("pass").value;
+
+  const res = await fetch(`${API}/login`, {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({ username, password })
+  });
+
+  const data = await res.json();
+
+  if (!data.restaurant_id) {
+  alert("Invalid login");
+  return;
+}
+  restaurantId = data.restaurant_id;
+  document.getElementById("panel").style.display = "block";
+  loadMenu();
+
+}
+
+// ➕ ADD MENU
+async function addMenu() {
+  if (!restaurantId) {
+    alert("Login first");
+    return;
+  }
+
+  const name = document.getElementById("name").value;
+  const price = document.getElementById("price").value;
+
+  if (!name || !price) {
+    alert("Enter item & price");
+    return;
+  }
+
+  await fetch(`${API}/add-menu`, {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({
+  restaurant_id: restaurantId,
+  name: document.getElementById("name").value,
+  price: document.getElementById("price").value,
+  category: document.getElementById("category").value,
+  image: document.getElementById("image").value
+})
+  });
+
+  document.getElementById("name").value = "";
+  document.getElementById("price").value = "";
+  document.getElementById("category").value = "";
+  document.getElementById("image").value = "";
+
+  loadMenu();
+}
+
+// 📋 LOAD MENU
+async function loadMenu() {
+  if (!restaurantId) return;
+
+  const res = await fetch(`${API}/menu/${restaurantId}`);
+  const data = await res.json();
+
+  let html = "";
+
+  data.forEach(item => {
+    html += `
+      <div style="margin:8px 0;">
+        ${item.name} - ₹${item.price}
+        <button onclick="deleteItem(${item.id})">Delete</button>
+      </div>
+    `;
+  });
+
+  document.getElementById("menu").innerHTML = html;
+}
+
+// ❌ DELETE
+async function deleteItem(id) {
+  await fetch(`${API}/menu/${id}`, { method: "DELETE" });
+  loadMenu();
+}
+</script>
+
+</body>
+</html>

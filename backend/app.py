@@ -7,44 +7,33 @@ app = FastAPI()
 # ------------------ DB FUNCTION ------------------
 import os
 import mysql.connector
+
+import os
+import mysql.connector
+
+import os
+import mysql.connector
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+import os
+import mysql.connector
 
 def get_db():
-    return mysql.connector.connect(
-        host=os.getenv("MYSQLHOST"),
-        user=os.getenv("MYSQLUSER"),
-        password=os.getenv("MYSQLPASSWORD"),
-        database=os.getenv("MYSQLDATABASE"),
-        port=int(os.getenv("MYSQLPORT"))
-    )
-
-@app.get("/")
-def home():
-    return {"message": "API running"}
-
-@app.get("/restaurant/{id}")
-def get_restaurant(id: int):
-    conn = get_db()
-    cursor = conn.cursor(dictionary=True)
-
-    cursor.execute("SELECT * FROM restaurants WHERE id=%s", (id,))
-    data = cursor.fetchone()
-
-    cursor.close()
-    conn.close()
-
-    return data
+    try:
+        return mysql.connector.connect(
+            host=os.getenv("MYSQLHOST"),
+            user=os.getenv("MYSQLUSER"),
+            password=os.getenv("MYSQLPASSWORD"),
+            database=os.getenv("MYSQLDATABASE"),
+            port=int(os.getenv("MYSQLPORT")),
+            connection_timeout=5
+        )
+    except Exception as e:
+        print("DB ERROR:", e)
+        raise e
+    
 # ------------------ CORS ------------------
 app.add_middleware(
     CORSMiddleware,
@@ -220,3 +209,12 @@ def mark_done(id: int):
 @app.get("/")
 def home():
     return {"message": "API running"}
+@app.get("/db-test")
+def db_test():
+    try:
+        conn = get_db()
+        cursor = conn.cursor()
+        cursor.execute("SELECT 1")
+        return {"status": "DB OK"}
+    except Exception as e:
+        return {"error": str(e)}

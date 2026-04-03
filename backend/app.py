@@ -7,16 +7,44 @@ app = FastAPI()
 # ------------------ DB FUNCTION ------------------
 import os
 import mysql.connector
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
+app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 def get_db():
     return mysql.connector.connect(
-        host=os.getenv("mysql.railway.internal"),
-        user=os.getenv("root"),
-        password=os.getenv("xjUDXMvTcxEqKrkWdFQghNYsGPpBFkTK"),
-        database=os.getenv("railway"),
-        port=int(os.getenv("3306"))
+        host=os.getenv("MYSQLHOST"),
+        user=os.getenv("MYSQLUSER"),
+        password=os.getenv("MYSQLPASSWORD"),
+        database=os.getenv("MYSQLDATABASE"),
+        port=int(os.getenv("MYSQLPORT"))
     )
 
+@app.get("/")
+def home():
+    return {"message": "API running"}
+
+@app.get("/restaurant/{id}")
+def get_restaurant(id: int):
+    conn = get_db()
+    cursor = conn.cursor(dictionary=True)
+
+    cursor.execute("SELECT * FROM restaurants WHERE id=%s", (id,))
+    data = cursor.fetchone()
+
+    cursor.close()
+    conn.close()
+
+    return data
 # ------------------ CORS ------------------
 app.add_middleware(
     CORSMiddleware,

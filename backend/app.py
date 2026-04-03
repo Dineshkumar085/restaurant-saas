@@ -8,10 +8,11 @@ app = FastAPI()
 # ------------------ DB FUNCTION ------------------
 def get_db():
     return mysql.connector.connect(
-        host="localhost",
+        host="mysql.railway.internal",
         user="root",
-        password="",
-        database="restaurantdb"
+        password="sfhknPaSoaBjJiAMXTsAgnFgViIerlBl",
+        database="railway"
+        
     )
 
 # ------------------ CORS ------------------

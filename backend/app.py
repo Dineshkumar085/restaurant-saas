@@ -1,5 +1,3 @@
-import os
-import mysql.connector
 import json
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -7,15 +5,16 @@ from fastapi.middleware.cors import CORSMiddleware
 app = FastAPI()
 
 # ------------------ DB FUNCTION ------------------
-def get_db():
-    import mysql.connector
+import os
+import mysql.connector
 
-    conn = mysql.connector.connect(
+def get_db():
+    return mysql.connector.connect(
         host=os.getenv("mysql.railway.internal"),
         user=os.getenv("root"),
-        password=os.getenv("sfhknPaSoaBjJiAMXTsAgnFgViIerlBl"),
+        password=os.getenv("xjUDXMvTcxEqKrkWdFQghNYsGPpBFkTK"),
         database=os.getenv("railway"),
-        port=int(os.getenv("3306"))  # 🔥 MUST
+        port=int(os.getenv("3306"))
     )
 
 # ------------------ CORS ------------------

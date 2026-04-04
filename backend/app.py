@@ -185,7 +185,18 @@ def get_orders(restaurant_id: int):
             r["items"] = json.loads(r["items"])
 
     return results
+@app.get("/order-status/{id}")
+def order_status(id: int):
+    conn = get_db()
+    cursor = conn.cursor(dictionary=True)
 
+    cursor.execute("SELECT status FROM orders WHERE id=%s", (id,))
+    data = cursor.fetchone()
+
+    cursor.close()
+    conn.close()
+
+    return data
 
 @app.put("/order/{id}")
 def mark_done(id: int):
@@ -218,3 +229,4 @@ def db_test():
         return {"status": "DB OK"}
     except Exception as e:
         return {"error": str(e)}
+    # 188-199

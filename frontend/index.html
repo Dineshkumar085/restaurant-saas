@@ -275,11 +275,54 @@ async function orderNow() {
     })
   });
 
-  alert("Order placed ✅");
-  location.reload();
+  const res = await fetch(`${API}/order`, {
+  method: "POST",
+  headers: {"Content-Type": "application/json"},
+  body: JSON.stringify({
+    name,
+    address,
+    table: tableNo,
+    items: cart,
+    total,
+    restaurant_id: restaurantId
+  })
+});
+
+const data = await res.json();
+
+// ✅ Save order id
+localStorage.setItem("order_id", data.order_id);
+
+alert("Order placed ✅");
+
+// start tracking
+trackOrder(data.order_id);
 }
 
 loadData();
+function trackOrder(orderId) {
+  const interval = setInterval(async () => {
+    try {
+      const res = await fetch(`${API}/order-status/${orderId}`);
+      const data = await res.json();
+
+      if (data.status === "done") {
+        alert("🎉 Your order is ready!");
+        clearInterval(interval);
+        localStorage.removeItem("order_id");
+      }
+
+    } catch (err) {
+      console.log(err);
+    }
+  }, 3000); // every 3 sec
+}
+window.onload = () => {
+  const savedOrder = localStorage.getItem("order_id");
+  if (savedOrder) {
+    trackOrder(savedOrder);
+  }
+};
 </script>
 
 </body>

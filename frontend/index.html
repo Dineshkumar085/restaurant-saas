@@ -265,18 +265,7 @@ btn.innerText = "Placing...";
   window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`);
 
   // DB SAVE
-  await fetch(`${API}/order`, {
-    method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({
-      name,
-      address,
-      table: tableNo,
-      items: cart,
-      total,
-      restaurant_id: restaurantId
-    })
-  });
+
 
   const res = await fetch(`${API}/order`, {
   method: "POST",

@@ -232,6 +232,9 @@ function updateUI(name) {
 }
 
 async function orderNow() {
+  const btn = document.querySelector(".order-btn");
+btn.disabled = true;
+btn.innerText = "Placing...";
   const name = document.getElementById("name").value;
   const address = document.getElementById("address").value;
   const tableNo = document.getElementById("tableNo").value;
@@ -307,7 +310,24 @@ function trackOrder(orderId) {
       const data = await res.json();
 
       if (data.status === "done") {
-        alert("🎉 Your order is ready!");
+
+        // 🔥 YAHAN DAALO
+        document.body.innerHTML += `
+          <div style="
+            position:fixed;
+            top:0;
+            left:0;
+            width:100%;
+            background:#2ed573;
+            color:white;
+            text-align:center;
+            padding:15px;
+            font-size:18px;
+            z-index:9999;">
+            🎉 Your Order is Ready!
+          </div>
+        `;
+
         clearInterval(interval);
         localStorage.removeItem("order_id");
       }
@@ -315,7 +335,7 @@ function trackOrder(orderId) {
     } catch (err) {
       console.log(err);
     }
-  }, 3000); // every 3 sec
+  }, 3000);
 }
 window.onload = () => {
   const savedOrder = localStorage.getItem("order_id");

@@ -214,6 +214,21 @@ def mark_done(id: int):
     conn.close()
 
     return {"message": "updated"}
+@app.put("/order/{id}/confirm")
+def confirm_order(id: int):
+    conn = get_db()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        "UPDATE orders SET status='confirmed' WHERE id=%s",
+        (id,)
+    )
+
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+    return {"message": "confirmed"}
 
 
 # ------------------ TEST ------------------

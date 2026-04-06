@@ -10,6 +10,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
 
   <style> 
+  
   header {
   max-width: 500px;          /* हेडर को भी सीमित करें */
   margin: 0 auto;            /* सेंटर में लाने के लिए */
@@ -48,9 +49,9 @@
     #restaurant-name { margin: 0; font-size: 1.8rem; }
 
     .container {
-  max-width: 500px;
+  max-width: 100%;
   margin: -30px auto 20px; /* 'auto' इसे डेस्कटॉप पर बीच में रखता है */
-  padding: 0 20px;
+  padding: 0 10px;
   box-sizing: border-box;
 }
 
@@ -120,7 +121,7 @@ input {
       <input type="text" id="name" placeholder="Your Name *">
       <input type="number" id="tableNo" placeholder="Table #">
     </div>
-    <input type="text" id="address" placeholder="Delivery Address">
+    <input type="text" id="address" placeholder="Delivery Address and Mobile No.">
   </div>
 
   <div id="menu"></div>
@@ -291,6 +292,7 @@ alert("Order placed ✅");
 trackOrder(data.order_id);
 }
 
+
 loadData();
 function trackOrder(orderId) {
   const interval = setInterval(async () => {
@@ -298,27 +300,104 @@ function trackOrder(orderId) {
       const res = await fetch(`${API}/order-status/${orderId}`);
       const data = await res.json();
 
+      // ✅ CONFIRMED BLOCK
+      if (data.status === "confirmed") {
+        if (!document.getElementById("confirm-banner")) {
+          const banner = document.createElement('div');
+          banner.id = "confirm-banner";
+          banner.style.cssText = `
+            position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+            width: 90%; max-width: 400px;
+            background: #2f3542; color: white;
+            padding: 20px 25px; border-radius: 20px;
+            border: 2px solid #10b981;
+            text-align: center; z-index: 10000;
+            font-family: 'Poppins', sans-serif;
+            box-shadow: 0 10px 30px rgba(16,185,129,0.3);
+          `;
+          banner.innerHTML = `
+            <div style="font-size: 32px;">🎉</div>
+            <div style="font-weight: 800; font-size: 18px; color: #10b981; margin: 8px 0;">
+              Your Order is Confirmed!
+            </div>
+            <div style="font-size: 13px; opacity: 0.8;">
+              We're preparing your food. Please wait...
+            </div>
+            <button onclick="this.parentElement.remove()" style="
+              margin-top: 15px; background: #10b981; color: white;
+              border: none; padding: 10px 25px; border-radius: 50px;
+              font-weight: bold; cursor: pointer;
+            ">Got it 👍</button>
+          `;
+          document.body.appendChild(banner);
+        }
+      }
+
+      // ✅ DONE BLOCK
       if (data.status === "done") {
-
-        // 🔥 YAHAN DAALO
-        document.body.innerHTML += `
-          <div style="
-            position:fixed;
-            top:0;
-            left:0;
-            width:100%;
-            background:#2ed573;
-            color:white;
-            text-align:center;
-            padding:15px;
-            font-size:18px;
-            z-index:9999;">
-            🎉 Your Order is Ready!
-          </div>
-        `;
-
         clearInterval(interval);
         localStorage.removeItem("order_id");
+
+        const script = document.createElement('script');
+        script.src = "https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js";
+        document.head.appendChild(script);
+
+        const style = document.createElement('style');
+        style.innerHTML = `
+          @keyframes glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(255, 71, 87, 0.4); }
+            50% { box-shadow: 0 0 40px rgba(255, 71, 87, 0.8); }
+          }
+          @keyframes slideIn {
+            0% { transform: translate(-50%, -200%) scale(0.5); opacity: 0; }
+            70% { transform: translate(-50%, 30px) scale(1.1); opacity: 1; }
+            100% { transform: translate(-50%, 20px) scale(1); opacity: 1; }
+          }
+          .ultra-premium-card {
+            background: rgba(47, 53, 66, 0.95);
+            backdrop-filter: blur(15px);
+            border: 2px solid #ff4757;
+            animation: slideIn 0.8s forwards, glow 2s infinite;
+          }
+          .fire-emoji { font-size: 40px; animation: bounce 1s infinite; }
+          @keyframes bounce { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.2); } }
+        `;
+        document.head.appendChild(style);
+
+        const banner = document.createElement('div');
+        banner.className = "ultra-premium-card";
+        banner.style.cssText = `
+          position: fixed; top: 20px; left: 50%; width: 90%; max-width: 400px;
+          color: white; padding: 25px; border-radius: 30px; z-index: 10000;
+          display: flex; flex-direction: column; align-items: center; text-align: center;
+          font-family: 'Poppins', sans-serif; gap: 15px;
+        `;
+        banner.innerHTML = `
+          <div class="fire-emoji">🎉</div>
+          <div>
+            <div style="font-weight: 900; font-size: 22px; color: #ff4757; text-transform: uppercase;">Order is Ready!</div>
+            <div style="font-size: 14px; opacity: 0.9; margin-top: 5px;">Your delicious food is waiting.</div>
+          </div>
+          <button id="celebrate-btn" style="
+            background: #ff4757; color: white; border: none; padding: 12px 30px;
+            border-radius: 50px; font-weight: bold; cursor: pointer;
+            box-shadow: 0 10px 20px rgba(255, 71, 87, 0.3); font-size: 16px;
+          ">I'm Coming! 🏃‍♂️</button>
+        `;
+        document.body.appendChild(banner);
+
+        let originalTitle = document.title;
+        setInterval(() => {
+          document.title = document.title === "😋 Order Ready!" ? originalTitle : "😋 Order Ready!";
+        }, 1000);
+
+        script.onload = () => {
+          confetti({ particleCount: 100, spread: 160, origin: { y: 0.3 } });
+          document.getElementById('celebrate-btn').onclick = () => {
+            confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#ff4757', '#ffffff', '#ff9f43'] });
+            setTimeout(() => { banner.style.opacity = '0'; setTimeout(() => banner.remove(), 500); }, 2000);
+          };
+        };
       }
 
     } catch (err) {

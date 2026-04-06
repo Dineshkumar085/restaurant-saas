@@ -1,10 +1,10 @@
 {
-  "name": "Waiterless QR Menu",
-  "short_name": "eWaiter",
+  "name": "Dine Flow",
+  "short_name": "Dine Flow",
   "start_url": "/index.html",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#ff4757",
+  "background_color": "white",
+  "theme_color": "white",
   "icons": [
     {
       "src": "icon.png",

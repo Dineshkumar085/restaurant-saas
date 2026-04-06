@@ -189,6 +189,46 @@
 
     .btn-complete:disabled { background: #334155; color: var(--text-muted); cursor: not-allowed; }
 
+    /* --- MOBILE RESPONSIVENESS --- */
+    @media (max-width: 768px) {
+      #mainDashboard {
+        grid-template-columns: 1fr; /* Sidebar ko hide karke stack kar dega */
+      }
+
+      aside {
+        display: none; /* Mobile par sidebar hide kar rahe hain dashboard saaf dikhne ke liye */
+      }
+
+      main {
+        padding: 15px; /* Mobile par padding kam */
+      }
+
+      .stats-container {
+        grid-template-columns: 1fr; /* Stats cards ek ke niche ek aayenge */
+        gap: 12px;
+      }
+
+      .stat-card {
+        padding: 15px;
+      }
+
+      .stat-card h3 {
+        font-size: 1.5rem;
+      }
+
+      #orders {
+        grid-template-columns: 1fr; /* Order cards mobile par full width honge */
+      }
+
+      .header-row h1 {
+        font-size: 1.4rem;
+      }
+
+      #loginScreen {
+        margin: 20px;
+        padding: 25px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -336,11 +376,29 @@
               <span>₹${order.total}</span>
             </div>
 
-            <button class="btn-complete" 
-                    ${isDone ? 'disabled' : ''} 
-                    onclick="markDone(${order.id})">
-              ${isDone ? 'Completed' : 'Mark as Ready'}
-            </button>
+            <button class="btn-confirm"
+        ${order.status !== 'pending' ? 'disabled' : ''}
+        onclick="confirmOrder(${order.id})"
+        style="
+          padding: 12px;
+          border-radius: 10px;
+          border: none;
+          font-weight: 600;
+          cursor: pointer;
+          background: ${order.status !== 'pending' ? '#334155' : '#10b981'};
+          color: ${order.status !== 'pending' ? 'var(--text-muted)' : 'white'};
+          margin-bottom: 10px;
+          width: 100%;
+          transition: 0.3s;
+        ">
+  ${order.status === 'pending' ? '✅ Confirm Order' : 'Confirmed'}
+</button>
+
+<button class="btn-complete" 
+        ${isDone ? 'disabled' : ''} 
+        onclick="markDone(${order.id})">
+  ${isDone ? 'Completed' : 'Mark as Ready'}
+</button>
           </div>
         `;
       });
@@ -359,6 +417,10 @@
     await fetch(`${API}/order/${id}`, { method: "PUT" });
     loadOrders();
   }
+  async function confirmOrder(id) {
+  await fetch(`${API}/order/${id}/confirm`, { method: "PUT" });
+  loadOrders();
+}
 </script>
 
 </body>
